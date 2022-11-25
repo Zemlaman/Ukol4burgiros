@@ -17,8 +17,10 @@ const dtoIn = {
 
 function main(dataInput) {
     const dtoOut = [];
+    let gender = "";
     for (let i = 0; i < dataInput.count; i++) {
-        if(randomGender() === "Male") {
+        gender = randomGender();
+        if(gender === "Male") {
             const gender = "Male";
             const name = randomManName();
             const surname = randomManSurname();
@@ -31,7 +33,7 @@ function main(dataInput) {
                 birthdate: birthdate,
                 workload: workload,
             });
-        } else if(randomGender() === "Female")  {
+        } else if(gender === "Female")  {
             const gender = "Female";
             const name = randomWomanName()
             const surname = randomWomanSurname()
@@ -47,49 +49,10 @@ function main(dataInput) {
         }
     }
     return dtoOut;
-
 }
+console.log(sortList(main(dtoIn)));
 
-const result = main(dtoIn);
-console.log(doStuff(result));
-
-//function that count workers with workload 10
-function countWorkload10(array) {
-    let count = 0;
-    for (let i = 0; i < array.length; i++) {
-        if (array[i].workload === 10) {
-            count++;
-        }
-    }
-    return count;
-}
-
-//function that count median workload
-function medianWorkload(array) {
-    let median = 0;
-    let sum = 0;
-    for (let i = 0; i < array.length; i++) {
-        sum += array[i].workload;
-    }
-    median = sum / array.length;
-    return median;
-}
-
-//function that count average workload of female workers
-function averageWorkloadFemale(array) {
-    let count = 0;
-    let sum = 0;
-    for (let i = 0; i < array.length; i++) {
-        if(array[i].gender === "Female"){
-            count++;
-            sum += array[i].workload;
-        }
-    }
-    return sum / count;
-}
-
-
-function doStuff(array) {
+function sortList(array) {
     let count = 0;
     let workload10 = 0;
     let workload20 = 0;
@@ -100,19 +63,10 @@ function doStuff(array) {
     let averageAge = 0;
     let minimalAge = 0;
     let maximalAge = 0;
-    let medianAge = 0;
+    let medAge = medianAge(main(dtoIn));
     let medWorkload = medianWorkload(main(dtoIn));
     let avgWomenWorkload = averageWorkloadFemale(main(dtoIn));
 
-    function medianWorkload(array) {
-        let median = 0;
-        let sum = 0;
-        for (let i = 0; i < array.length; i++) {
-            sum += array[i].workload;
-        }
-        median = sum / array.length;
-        return median;
-    }
 
     for (let i = 0; i < array.length; i++) {
         count++;
@@ -127,14 +81,12 @@ function doStuff(array) {
         }
     }
 
+    //function that will find minimal and maximal age of employees from array
     for (let i = 0; i < array.length; i++) {
         const date = new Date(array[i].birthdate);
-        const now = new Date();
-        age = now.getFullYear() - date.getFullYear();
-        if (now.getMonth() < date.getMonth() || (now.getMonth() === date.getMonth() && now.getDate() < date.getDate())) {
-            age--;
-        }
-        if (age < minimalAge) {
+        const today = new Date();
+        age = today.getFullYear() - date.getFullYear();
+        if (age < minimalAge || minimalAge === 0) {
             minimalAge = age;
         }
         if (age > maximalAge) {
@@ -142,8 +94,52 @@ function doStuff(array) {
         }
         sumAge += age;
     }
-    medianAge = sumAge / array.length;
+
     averageAge = sumAge / array.length;
+
+    //function that count average workload of female workers
+    function averageWorkloadFemale(array) {
+        let awfCount = 0;
+        let sum = 0;
+        for (let i = 0; i < array.length; i++) {
+            if(array[i].gender === "Female"){
+                awfCount++;
+                sum += array[i].workload;
+            }
+        }
+        return sum / awfCount;
+    }
+
+    //function that will make age out of birthdate and count median age
+    function medianAge(array) {
+        let ages = [];
+        for (let i = 0; i < array.length; i++) {
+            const date = new Date(array[i].birthdate);
+            const now = new Date();
+            age = now.getFullYear() - date.getFullYear();
+            if (now.getMonth() < date.getMonth() || (now.getMonth() === date.getMonth() && now.getDate() < date.getDate())) {
+                age--;
+            }
+            ages.push(age);
+        }
+        ages.sort(function(a, b){return a-b});
+        if (ages.length % 2 === 0) {
+            return (ages[ages.length / 2 - 1] + ages[ages.length / 2]) / 2;
+        } else {
+            return ages[(ages.length - 1) / 2];
+        }
+    }
+
+    //function that get median workload of all workers
+    function medianWorkload(array) {
+        const sortedArray = array.sort((a, b) => a.workload - b.workload);
+        const middle = Math.floor(sortedArray.length / 2);
+        if (sortedArray.length % 2) {
+            return sortedArray[middle].workload;
+        }
+        return (sortedArray[middle - 1].workload + sortedArray[middle].workload) / 2;
+    }
+
     return {
         total: count,
         workload10: workload10,
@@ -153,25 +149,16 @@ function doStuff(array) {
         averageAge: averageAge,
         minAge: minimalAge,
         maxAge: maximalAge,
-        medianAge: medianAge,
+        medianAge: medAge,
         medianWorkload: medWorkload,
         averageWomenWorkload: avgWomenWorkload,
         sortedByWorklad: array.sort((a, b) => a.workload - b.workload)
     }
 }
 
-function countObjectInArray(array) {
-    let count = 0;
-    for (let i = 0; i < array.length; i++) {
-        count++;
-    }
-    return count;
-}
-
 //function to chose gender randomly
 function randomGender() {
-    let genders = ["Male", "Female"];
-    return genders[Math.floor(Math.random()*genders.length)];
+    return Math.random() < 0.5 ? "Male" : "Female";
 }
 
 //function to generate random man name
